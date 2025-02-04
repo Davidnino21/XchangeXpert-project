@@ -1,7 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./App.css";
+const baseUrl = "https://api.currencyfreaks.com/v2.0";
 
 function App() {
+  const [currencies, setCurrencies] = useState([]);
+
+  useEffect(() => {
+    fetch(`${baseUrl}/supported-currencies`)
+      .then((response) => response.json())
+      .then((data) => {
+        setCurrencies(
+          Object.values(data.supportedCurrenciesMap).filter(
+            (c) => c.status === "AVAILABLE"
+          )
+        );
+      });
+  }, []);
+
   return (
     <>
       <div>
@@ -16,20 +31,18 @@ function App() {
           </div>
           <div className="symbols">
             <select>
-              <option value="">EUR</option>
-              <option value="">MXN</option>
-              <option value="">ETH</option>
-              <option value="">USD</option>
-              <option value="">PKR</option>
-              <option value="">CAD</option>
+              {currencies.map((c) => (
+                <option key={c.currencyCode} value={c.currencyCode}>
+                  {c.currencyCode}
+                </option>
+              ))}
             </select>
             <select>
-              <option value="">EUR</option>
-              <option value="">MXN</option>
-              <option value="">ETH</option>
-              <option value="">USD</option>
-              <option value="">PKR</option>
-              <option value="">CAD</option>
+              {currencies.map((c) => (
+                <option key={c.currencyCode} value={c.currencyCode}>
+                  {c.currencyCode}
+                </option>
+              ))}
             </select>
           </div>
         </div>
