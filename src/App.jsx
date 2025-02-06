@@ -1,24 +1,43 @@
 import { useState, useEffect } from "react"; // Importing state hooks
 import "./App.css"; // Importing Styles
-const baseUrl = "https://api.currencyfreaks.com/v2.0"; // Base API URL
+const baseUrl = "https://v6.exchangerate-api.com/v6"; // Base API URL
+const apiKey = import.meta.env.VITE_API_KEY;
 
 function App() {
   const [currencies, setCurrencies] = useState([]); // State to store available currencies
+  const [fromCurrency, setFromCurrency] = useState("");
+  const [toCurrency, setToCurrency] = useState("");
+  const [fromValue, setFromValue] = useState(0);
+  const [toValue, setToValue] = useState(0);
 
   useEffect(() => {
-    // Fetching supported currencies from the API when the component mounts
-    fetch(`${baseUrl}/supported-currencies`)
-      .then((response) => response.json()) // Converting response to JSON
+    fetch(`${baseUrl}/${apiKey}/codes`)
+      .then((response) => response.json())
       .then((data) => {
-        // Filtering available currencies and updating state
-        setCurrencies(
-          Object.values(data.supportedCurrenciesMap).filter(
-            (c) => c.status === "AVAILABLE"
-          )
-        );
+        {
+          setCurrencies(
+            data.supported_codes.map(([code]) => ({
+              code,
+            }))
+          );
+        }
       })
-      .catch((error) => console.error("Error fetching currencies:", error)); // Handles potential errors
-  }, []); // Empty dependency array ensures useEffect runs only once on mount
+      .catch((error) => console.error("Error fetching currencies:", error));
+  }, []);
+
+  useEffect(() => {
+    fetchRates();
+  }, [fromCurrency, toCurrency, fromValue]);
+
+  const fetchRates = () => {
+    if (fromCurrency && toCurrency && fromValue) {
+      fetch(`${baseUrl}/${apiKey}/pair/${fromCurrency}/${toCurrency}`)
+        .then((response) => response.json())
+        .then((data) => {
+          setToValue((fromValue * data.conversion_rate).toFixed(2));
+        });
+    }
+  };
 
   return (
     <>
@@ -26,24 +45,38 @@ function App() {
         <div className="card">
           <h1>XchangeXpert</h1>
           <div className="amount">
-            <input type="number" />
-            <input type="number" />
+            <input
+              type="number"
+              value={fromValue}
+              onChange={(e) => setFromValue(e.target.value)}
+            />
+            <input
+              type="number"
+              value={toValue}
+              onChange={(e) => setToValue(e.target.value)}
+            />
           </div>
           <div>
             <h3>=</h3>
           </div>
           <div className="symbols">
-            <select>
+            <select
+              value={fromCurrency}
+              onChange={(e) => setFromCurrency(e.target.value)}
+            >
               {currencies.map((c) => (
-                <option key={c.currencyCode} value={c.currencyCode}>
-                  {c.currencyCode}
+                <option key={c.code} value={c.code}>
+                  {c.code}
                 </option>
               ))}
             </select>
-            <select>
+            <select
+              value={toCurrency}
+              onChange={(e) => setToCurrency(e.target.value)}
+            >
               {currencies.map((c) => (
-                <option key={c.currencyCode} value={c.currencyCode}>
-                  {c.currencyCode}
+                <option key={c.code} value={c.code}>
+                  {c.code}
                 </option>
               ))}
             </select>
