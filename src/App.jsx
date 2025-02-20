@@ -11,7 +11,7 @@ function App() {
   const [toValue, setToValue] = useState(0);
 
   useEffect(() => {
-    fetch(`${baseUrl}/${apiKey}/codes`)
+    fetch(`${baseUrl}/${apiKey}/codes`, {mode:"cors"})
       .then((response) => response.json())
       .then((data) => {
         {
